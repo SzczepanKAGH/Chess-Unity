@@ -55,8 +55,7 @@ public class Rook : PieceLogic
 
    public List<(int, int)> Directions = new() { (-1, 0), (0, -1), (1, 0), (0, 1) };
 
-   public Rook(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : 
-      base(color, representation, position)
+   public Rook(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : base(color, representation, position)
    {
       this.HasMoved = hasMoved;
    }
@@ -92,6 +91,7 @@ public class Knight : PieceLogic
 
    public Knight(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : 
       base(color, representation, position) { }
+
    public override void GetPossibleMoves(Board board)
    {
       var possibleMoves = new List<int>();
@@ -101,11 +101,11 @@ public class Knight : PieceLogic
 public class Bishop : PieceLogic
 {
    public override PieceType Type => PieceType.Bishop;
-
    public List<(int, int)> Directions = new() { (-1, -1), (1, -1), (1, 1), (1, -1) };
 
    public Bishop(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : 
       base(color, representation, position) { }
+
    public override void GetPossibleMoves(Board board)
    {
       var possibleMoves = new List<int>();
@@ -115,11 +115,11 @@ public class Bishop : PieceLogic
 public class Queen : PieceLogic
 {
    public override PieceType Type => PieceType.Queen;
-
    public List<(int, int)> Directions = new() { (-1, 0), (0, -1), (1, 0), (0, 1), (-1, -1), (1, -1), (1, 1), (1, -1) };
 
    public Queen(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : 
       base(color, representation, position) { }
+
    public override void GetPossibleMoves(Board board)
    {
       var possibleMoves = new List<int>();
