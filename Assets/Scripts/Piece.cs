@@ -9,6 +9,8 @@ public interface IPieceLogic
    public PieceColor Color { get; }
    public Coords Position { get; }
    public GameObject GraphicalRepresentation { get; }
+   public List<(int, int)> PossibleMoves { get; set; }
+   public List<(int, int)> PossibleAttacks { get; set; }
    public void GetPossibleMoves(Board board);
 
 }
@@ -18,7 +20,9 @@ public abstract class PieceLogic : IPieceLogic
    public abstract PieceType Type { get; }
    public PieceColor Color { get; }
    public GameObject GraphicalRepresentation { get; }
-   public List<int> PossibleMoves { get; set; }
+   public List<(int, int)> PossibleMoves { get; set; }
+   public List<(int, int)> PossibleAttacks { get; set; }
+   private List<(int, int)> Directions = new List<(int, int)>();
 
    public PieceLogic(PieceColor color, GameObject representation, Coords position)
    {
@@ -26,7 +30,36 @@ public abstract class PieceLogic : IPieceLogic
       this.Color = color;
       this.Position = position;
    }
-   public abstract void GetPossibleMoves(Board board);
+
+   public virtual void GetPossibleMoves(Board board)
+   {
+      var possibleMoves = new List<(int, int)>();
+      var possibleAttacks = new List<(int, int)>();
+
+
+      foreach (var (rankOffset, fileOffset) in Directions)
+      {
+         int rank = Position.Rank;
+         int file = Position.File;
+
+         while (Utilities.IsWithinBounds(rank, file))
+         {
+            rank += rankOffset;
+            file += fileOffset;
+
+            if (board.IsOccupied(rank, file))
+            {
+               if (board.GetPieceAtSquare(rank, file).Color != Color)
+               {
+                  possibleAttacks.Add((rank, file));
+               }
+               break;
+            }
+         }
+      }
+      PossibleMoves = possibleMoves;
+      PossibleAttacks = possibleAttacks;
+   }
 
 }
 
@@ -42,7 +75,7 @@ public class Pawn : PieceLogic
    }
    public override void GetPossibleMoves(Board board)
    {
-      var possibleMoves = new List<int>();
+      var possibleMoves = new List<(int, int)>();
       PossibleMoves = possibleMoves;
    }
 
@@ -52,36 +85,12 @@ public class Rook : PieceLogic
 {
    public override PieceType Type => PieceType.Rook;
    public bool HasMoved { get; set; }
-
    public List<(int, int)> Directions = new() { (-1, 0), (0, -1), (1, 0), (0, 1) };
 
    public Rook(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : base(color, representation, position)
    {
       this.HasMoved = hasMoved;
    }
-   public override void GetPossibleMoves(Board board)
-   {
-      var possibleMoves = new List<int>();
-
-      foreach (var (rankOffset, fileOffset) in Directions)
-      {
-         int rank = Position.Rank;
-         int file = Position.File;
-
-         while (Utilities.IsWithinBounds(rank, file))
-         {
-            rank += rankOffset;
-            file += fileOffset;
-
-            if (board.IsOccupied(rank, file))
-            {
-
-            }
-         }
-      }
-      PossibleMoves = possibleMoves;
-   }
-
 }
 
 /* == KNIGHT ==*/
@@ -94,7 +103,7 @@ public class Knight : PieceLogic
 
    public override void GetPossibleMoves(Board board)
    {
-      var possibleMoves = new List<int>();
+      var possibleMoves = new List<(int, int)>();
       PossibleMoves = possibleMoves;
    }
 }
@@ -106,11 +115,6 @@ public class Bishop : PieceLogic
    public Bishop(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : 
       base(color, representation, position) { }
 
-   public override void GetPossibleMoves(Board board)
-   {
-      var possibleMoves = new List<int>();
-      PossibleMoves = possibleMoves;
-   }
 }
 public class Queen : PieceLogic
 {
@@ -120,11 +124,6 @@ public class Queen : PieceLogic
    public Queen(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : 
       base(color, representation, position) { }
 
-   public override void GetPossibleMoves(Board board)
-   {
-      var possibleMoves = new List<int>();
-      PossibleMoves = possibleMoves;
-   }
 }
 public class King : PieceLogic
 {
@@ -147,7 +146,7 @@ public class King : PieceLogic
    }
    public override void GetPossibleMoves(Board board)
    {
-      var possibleMoves = new List<int>();
+      var possibleMoves = new List<(int, int)>();
       PossibleMoves = possibleMoves;
    }
 }
