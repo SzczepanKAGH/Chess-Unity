@@ -22,7 +22,7 @@ public abstract class PieceLogic : IPieceLogic
    public GameObject GraphicalRepresentation { get; }
    public List<(int, int)> PossibleMoves { get; set; }
    public List<(int, int)> PossibleAttacks { get; set; }
-   private List<(int, int)> Directions = new List<(int, int)>();
+   protected List<(int, int)> Directions = new List<(int, int)>();
 
    public PieceLogic(PieceColor color, GameObject representation, Coords position)
    {
@@ -36,25 +36,27 @@ public abstract class PieceLogic : IPieceLogic
       var possibleMoves = new List<(int, int)>();
       var possibleAttacks = new List<(int, int)>();
 
-
       foreach (var (rankOffset, fileOffset) in Directions)
       {
-         int rank = Position.Rank;
-         int file = Position.File;
+         int rank = Position.Rank + rankOffset;
+         int file = Position.File + fileOffset;
 
          while (Utilities.IsWithinBounds(rank, file))
          {
-            rank += rankOffset;
-            file += fileOffset;
-
             if (board.IsOccupied(rank, file))
             {
+               Debug.Log($"Square {rank}, {file} is occupied");
                if (board.GetPieceAtSquare(rank, file).Color != Color)
                {
                   possibleAttacks.Add((rank, file));
+                  Debug.Log($"Added Attack {rank}, {file}");
                }
                break;
             }
+            rank += rankOffset;
+            file += fileOffset;
+
+            possibleMoves.Add((rank, file));
          }
       }
       PossibleMoves = possibleMoves;
@@ -85,10 +87,10 @@ public class Rook : PieceLogic
 {
    public override PieceType Type => PieceType.Rook;
    public bool HasMoved { get; set; }
-   public List<(int, int)> Directions = new() { (-1, 0), (0, -1), (1, 0), (0, 1) };
 
    public Rook(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : base(color, representation, position)
    {
+      Directions = new() { (-1, 0), (0, -1), (1, 0), (0, 1) };
       this.HasMoved = hasMoved;
    }
 }
@@ -110,19 +112,21 @@ public class Knight : PieceLogic
 public class Bishop : PieceLogic
 {
    public override PieceType Type => PieceType.Bishop;
-   public List<(int, int)> Directions = new() { (-1, -1), (1, -1), (1, 1), (1, -1) };
 
-   public Bishop(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : 
-      base(color, representation, position) { }
+   public Bishop(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : base(color, representation, position) 
+   {
+      Directions = new() { (-1, -1), (1, -1), (1, 1), (1, -1) };
+   }
 
 }
 public class Queen : PieceLogic
 {
    public override PieceType Type => PieceType.Queen;
-   public List<(int, int)> Directions = new() { (-1, 0), (0, -1), (1, 0), (0, 1), (-1, -1), (1, -1), (1, 1), (1, -1) };
 
-   public Queen(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : 
-      base(color, representation, position) { }
+   public Queen(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : base(color, representation, position) 
+   {
+      Directions = new() { (-1, 0), (0, -1), (1, 0), (0, 1), (-1, -1), (1, -1), (1, 1), (1, -1) };
+   }
 
 }
 public class King : PieceLogic

@@ -11,9 +11,9 @@ public class GraphicalBoard : MonoBehaviour
 
    public void CreateGraphicalBoard()
    {
-      for (int fileIdx = 0; fileIdx < 8; fileIdx++)
+      for (int fileIdx = 7; fileIdx >= 0; fileIdx--)
       {
-         for (int rankIdx = 0; rankIdx < 8; rankIdx++)
+         for (int rankIdx = 7; rankIdx >= 0; rankIdx--)
          {
             var position = new Vector2(rankIdx - 3.5f, fileIdx - 3.5f);
             bool isLight = Utilities.IsLightSquare(fileIdx, rankIdx);

@@ -34,7 +34,6 @@ public class PieceRenderer : MonoBehaviour, IPieceRenderer
          {
             Sprite pieceSprite = Resources.Load<Sprite>($"Sprites/Piece={(PieceType)piece}, Side={color}");
 
-            Debug.Log($"{color}_{(PieceType)piece}");
             PieceSprites.Add($"{color}_{(PieceType)piece}", pieceSprite);
          }
       }

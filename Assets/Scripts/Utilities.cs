@@ -1,4 +1,3 @@
-
 public class Utilities
 {
    public static bool IsLightSquare(int rankIndex, int fileIndex) => ((fileIndex + rankIndex) % 2 != 0);

@@ -18,7 +18,7 @@ public class FenReader
    public static PieceLogic[,] ReadFEN(string Fen)
    {
       var newBoard = new PieceLogic[8, 8];
-      int row = 0, col = 0;
+      int row = 7, col = 0;
 
       string[] fenFlags = Fen.Split(' ');
 
@@ -32,7 +32,7 @@ public class FenReader
       {
          if (ch == '/')
          {
-            row++;
+            row--;
             col = 0;
          }
          else if (char.IsDigit(ch))
@@ -49,7 +49,6 @@ public class FenReader
             col++;
          }
       }
-
       return newBoard;
 
    }
