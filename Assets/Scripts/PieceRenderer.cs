@@ -11,6 +11,7 @@ public interface IPieceRenderer
    private static Dictionary<string, Sprite> PieceSprites;
    public GameObject SpawnPiece(Coords pieceCoords, PieceType type, PieceColor color);
 }
+
 public class PieceRenderer : MonoBehaviour, IPieceRenderer
 {
    public static Dictionary<string, Sprite> PieceSprites = new Dictionary<string, Sprite>();

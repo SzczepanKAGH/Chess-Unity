@@ -7,6 +7,10 @@ public class Utilities
       return rankIndex >= 0 && rankIndex < 8 && fileIndex >= 0 && fileIndex < 8;
    }
 
+   public static PieceColor GetOppositeColor(PieceColor color)
+   {
+      return (color == PieceColor.White) ? PieceColor.Black : PieceColor.White;
+   }
 }
 
 public struct Coords
