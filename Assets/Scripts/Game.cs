@@ -9,8 +9,7 @@ public class Game : MonoBehaviour
    
    void Start()
    {
-      PieceRenderer.LoadSprites();
-      var board = new Board(graphicalBoard); 
+      Board board = SetupGame();
       //board.GetPieceAtSquare(4, 3).GetPossibleMoves(board);
       //foreach ((int, int) move in board.GetPieceAtSquare(4, 3).PossibleMoves)
       //{
@@ -22,8 +21,17 @@ public class Game : MonoBehaviour
    {
       if (Input.GetKeyDown(KeyCode.Space)) {
          Coords newcord = new Coords(4, 3);
-         List<int> list = new List<int>() {newcord.GetBoardIndex()};
+         List<(int, int)> list = new List<(int, int)>() {(0, 1)};
          graphicalBoard.HighlightSquares(list);
       }
+   }
+
+   public Board SetupGame()
+   {
+      PieceRenderer.LoadSprites();
+      var board = new Board(graphicalBoard);
+      board.logicalBoard = Board.InitializeBoard(board);
+
+      return board;
    }
 }

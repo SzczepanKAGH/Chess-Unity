@@ -9,10 +9,9 @@ public class Board
    public Board(GraphicalBoard graphicalBoard)
    {
       graphicalBoard.CreateGraphicalBoard();
-      logicalBoard = InitializeBoard();
    }
 
-   public PieceLogic[,] InitializeBoard() => FenReader.ReadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+   public static PieceLogic[,] InitializeBoard(Board board) => FenReader.ReadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", board);
 
    public bool IsOccupied(int rankIndex, int fileIndex) => logicalBoard[rankIndex, fileIndex] != null;
 

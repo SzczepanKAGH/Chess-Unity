@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,28 +12,34 @@ public interface IPieceLogic
    public GameObject GraphicalRepresentation { get; }
    public List<(int, int)> PossibleMoves { get; set; }
    public List<(int, int)> PossibleAttacks { get; set; }
-   public void GetPossibleMoves(Board board);
+   public void GetPossibleMoves();
    public bool IsColor(PieceColor color);
 }
+
 public abstract class PieceLogic : IPieceLogic
 {
    public Coords Position { get; }
    public abstract PieceType Type { get; }
    public PieceColor Color { get; }
+   public PieceRenderer Renderer { get; }
    public GameObject GraphicalRepresentation { get; }
    public List<(int, int)> PossibleMoves { get; set; }
    public List<(int, int)> PossibleAttacks { get; set; }
 
    protected List<(int, int)> Directions = new List<(int, int)>();
 
-   public PieceLogic(PieceColor color, GameObject representation, Coords position)
+   protected Board Board { get; }
+
+   public PieceLogic(PieceColor color, GameObject representation, Coords position, Board board)
    {
       this.GraphicalRepresentation = representation;
+      this.Renderer = GraphicalRepresentation.GetComponent<PieceRenderer>();
       this.Color = color;
       this.Position = position;
+      this.Board = board;
    }
 
-   public virtual void GetPossibleMoves(Board board)
+   public virtual void GetPossibleMoves()
    {
       var possibleMoves = new List<(int, int)>();
       var possibleAttacks = new List<(int, int)>();
@@ -45,10 +52,10 @@ public abstract class PieceLogic : IPieceLogic
 
          while (Utilities.IsWithinBounds(rank, file))
          {
-            if (board.IsOccupied(rank, file))
+            if (Board.IsOccupied(rank, file))
             {
                Debug.Log($"Square {rank}, {file} is occupied");
-               if (board.GetPieceAtSquare(rank, file).IsColor(oppositeColor))
+               if (Board.GetPieceAtSquare(rank, file).IsColor(oppositeColor))
                {
                   possibleAttacks.Add((rank, file));
                   Debug.Log($"Added Attack {rank}, {file}");
@@ -67,149 +74,41 @@ public abstract class PieceLogic : IPieceLogic
    public bool IsColor(PieceColor color) => this.Color == color;
 }
 
-public class Pawn : PieceLogic
-{
-   public override PieceType Type => PieceType.Pawn;
-   public bool HasMoved { get; set; }
-
-   public Pawn(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : 
-      base(color, representation, position) 
-   {
-      this.HasMoved = hasMoved;
-   }
-   public override void GetPossibleMoves(Board board)
-   {
-      var possibleMoves = new List<(int, int)>();
-      PossibleMoves = possibleMoves;
-   }
-
-}
-
 public class Rook : PieceLogic
 {
    public override PieceType Type => PieceType.Rook;
    public bool HasMoved { get; set; }
 
-   public Rook(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : base(color, representation, position)
+   public Rook(PieceColor color, GameObject representation, Coords position, Board board, bool hasMoved = false)
+      : base(color, representation, position, board)
    {
       Directions = new() { (-1, 0), (0, -1), (1, 0), (0, 1) };
       this.HasMoved = hasMoved;
    }
 }
 
-/* == KNIGHT ==*/
-public class Knight : PieceLogic
-{
-   public override PieceType Type => PieceType.Knight;
-
-   public Knight(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : base(color, representation, position) 
-   {
-      Directions = new() { (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1), (-2, 1), (-1, 2), (1, 2) };
-   }
-
-   public override void GetPossibleMoves(Board board)
-   {
-      var possibleMoves = new List<(int, int)>();
-      var possibleAttacks = new List<(int, int)>();
-
-      foreach (var (rankOffset, fileOffset) in Directions)
-      {
-         int rank = Position.Rank + rankOffset;
-         int file = Position.File + fileOffset;
-         PieceColor oppositeColor = Utilities.GetOppositeColor(this.Color);
-
-         if (Utilities.IsWithinBounds(rank, file))
-         {
-            if (board.IsOccupied(rank, file))
-            {
-               Debug.Log($"Square {rank}, {file} is occupied");
-               if (board.GetPieceAtSquare(rank, file).IsColor(oppositeColor))
-               {
-                  possibleAttacks.Add((rank, file));
-                  possibleMoves.Add((rank, file));
-                  Debug.Log($"Added Attack {rank}, {file}");
-                  continue;
-               }
-               else
-               {
-                  continue;
-               }
-            }
-            possibleMoves.Add((rank, file));
-         }
-      }
-      PossibleMoves = possibleMoves;
-      PossibleAttacks = possibleAttacks;
-   }
-}
 public class Bishop : PieceLogic
 {
    public override PieceType Type => PieceType.Bishop;
 
-   public Bishop(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : base(color, representation, position) 
+   public Bishop(PieceColor color, GameObject representation, Coords position, Board board, bool hasMoved = false)
+      : base(color, representation, position, board) 
    {
       Directions = new() { (-1, -1), (1, -1), (1, 1), (1, -1) };
    }
 
 }
+
 public class Queen : PieceLogic
 {
    public override PieceType Type => PieceType.Queen;
 
-   public Queen(PieceColor color, GameObject representation, Coords position, bool hasMoved = false) : base(color, representation, position) 
+   public Queen(PieceColor color, GameObject representation, Coords position, Board board, bool hasMoved = false)
+      : base(color, representation, position, board) 
    {
       Directions = new() { (-1, 0), (0, -1), (1, 0), (0, 1), (-1, -1), (1, -1), (1, 1), (1, -1) };
    }
 
 }
-public class King : PieceLogic
-{
-   public override PieceType Type => PieceType.King;
-   public bool CanCastleQueenside { get; set; }
-   public bool CanCastleKingside { get; set; }
-   public bool HasMoved { get; set; }
 
-   public King(PieceColor color,
-               GameObject representation,
-               Coords position,
-               bool canCastleQueenside = true,
-               bool canCastleKingside = true,
-               bool hasMoved = false)
-               : base(color, representation, position)
-   {
-      this.CanCastleKingside = canCastleKingside;
-      this.CanCastleQueenside = canCastleQueenside;
-      this.HasMoved = hasMoved;
-   }
-   public override void GetPossibleMoves(Board board)
-   {
-      var possibleMoves = new List<(int, int)>();
-      var possibleAttacks = new List<(int, int)>();
 
-      Directions = new() { (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)};
-
-      foreach (var (rankOffset, fileOffset) in possibleMoves)
-      {
-         int rank = Position.Rank + rankOffset;
-         int file = Position.File + fileOffset;
-         PieceColor oppositeColor = Utilities.GetOppositeColor(this.Color);
-
-         if (Utilities.IsWithinBounds(rank, file))
-         {
-            if (board.IsOccupied(rank, file))
-            {
-               if (!board.IsUnderAttackBy(rank, file, oppositeColor) && board.GetPieceAtSquare(rank, file).IsColor(oppositeColor))
-               {
-                  possibleMoves.Add((rank, file));
-                  possibleAttacks.Add((rank, file));
-               }
-            } else if (!board.IsUnderAttackBy(rank, file, oppositeColor))
-            {
-               possibleMoves.Add((rank, file));
-            }
-         }
-      }
-      PossibleMoves = possibleMoves;
-      PossibleAttacks = possibleAttacks;
-   }
-}

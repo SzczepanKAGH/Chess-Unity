@@ -15,7 +15,7 @@ public class FenReader
    {'b', (PieceColor.Black, PieceType.Bishop)}, {'B', (PieceColor.White, PieceType.Bishop)},
 };
 
-   public static PieceLogic[,] ReadFEN(string Fen)
+   public static PieceLogic[,] ReadFEN(string Fen, Board board)
    {
       var newBoard = new PieceLogic[8, 8];
       int row = 7, col = 0;
@@ -43,7 +43,7 @@ public class FenReader
          {
             var coords = new Coords(row, col);
             var (color, type) = fenNotationTranslator[ch];
-            PieceLogic piece = PieceFactory.CreatePiece(coords ,type, color);
+            PieceLogic piece = PieceFactory.CreatePiece(coords ,type, color, board);
 
             newBoard[row, col] = piece;
             col++;

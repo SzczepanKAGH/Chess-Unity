@@ -9,23 +9,13 @@ public enum PieceColor { White, Black };
 public interface IPieceRenderer
 {
    private static Dictionary<string, Sprite> PieceSprites;
-   public GameObject SpawnPiece(Coords pieceCoords, PieceType type, PieceColor color);
 }
 
 public class PieceRenderer : MonoBehaviour, IPieceRenderer
 {
    public static Dictionary<string, Sprite> PieceSprites = new Dictionary<string, Sprite>();
 
-   public GameObject SpawnPiece(Coords pieceCoords, PieceType pieceType, PieceColor pieceColor)
-   {
-      var newPiece = new GameObject(name = $"{pieceType}-{pieceColor}-{pieceCoords}");
-      newPiece.AddComponent<SpriteRenderer>();
-
-      newPiece.GetComponent<SpriteRenderer>().sprite = PieceSprites[$"{pieceColor}_{pieceType}"];
-      newPiece.transform.position = GraphicalBoard.squaresList[pieceCoords.GetBoardIndex()].transform.position;
-
-      return newPiece;
-   }
+   public event EventHandler OnPieceClicked;
 
    public static void LoadSprites()
    {
@@ -39,4 +29,10 @@ public class PieceRenderer : MonoBehaviour, IPieceRenderer
          }
       }
    }
+
+   private void OnMouseDown()
+   {
+      OnPieceClicked?.Invoke(this, EventArgs.Empty);
+   }
+
 }
