@@ -1,3 +1,6 @@
+
+using System.Collections.Generic;
+
 public class Utilities
 {
    public static bool IsLightSquare(int rankIndex, int fileIndex) => ((fileIndex + rankIndex) % 2 != 0);
@@ -14,7 +17,7 @@ public class Utilities
 }
 
 public struct Coords
-{ 
+{
    public int Rank { get; }
    public int File { get; }
    private readonly int SquareIndex;
@@ -36,4 +39,13 @@ public struct Coords
    public override string ToString() => $"(R{Rank}-F{File})";
 
    public int GetBoardIndex() => SquareIndex;
+}
+
+public struct GameData
+{
+   public int MoveNo;
+   public int HalfmoveRule;
+   public PieceColor ActivePlayer;
+   public Dictionary<PieceColor, Coords> EnPassantSquares;
+
 }

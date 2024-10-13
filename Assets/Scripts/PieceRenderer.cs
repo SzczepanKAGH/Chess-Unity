@@ -30,6 +30,14 @@ public class PieceRenderer : MonoBehaviour, IPieceRenderer
       }
    }
 
+   public void UpdateVisualPosition(Coords newPosition)
+   {
+      float x = newPosition.File - 3.5f;
+      float y = newPosition.Rank - 3.5f;
+
+      transform.position = new Vector2(x, y);
+   }
+
    private void OnMouseDown()
    {
       OnPieceClicked?.Invoke(this, EventArgs.Empty);

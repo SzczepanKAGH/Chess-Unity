@@ -22,7 +22,7 @@ public class FenReader
 
       string[] fenFlags = Fen.Split(' ');
 
-      string fenTurn = fenFlags[1];
+      string fenActivePlayer = fenFlags[1];
       string fenCastling = fenFlags[2];
       string fenEnPassant = fenFlags[3];
       string fenHalfmove = fenFlags[4];

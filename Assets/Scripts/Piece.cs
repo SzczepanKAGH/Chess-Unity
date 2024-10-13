@@ -2,6 +2,8 @@ using JetBrains.Annotations;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using UnityEngine.UIElements;
 
 
 public interface IPieceLogic
@@ -18,7 +20,7 @@ public interface IPieceLogic
 
 public abstract class PieceLogic : IPieceLogic
 {
-   public Coords Position { get; }
+   public Coords Position { get; set; }
    public abstract PieceType Type { get; }
    public PieceColor Color { get; }
    public PieceRenderer Renderer { get; }
@@ -37,13 +39,15 @@ public abstract class PieceLogic : IPieceLogic
       this.Color = color;
       this.Position = position;
       this.Board = board;
+
+      Renderer.OnPieceClicked += HandlePieceCliked;
    }
 
    public virtual void GetPossibleMoves()
    {
       var possibleMoves = new List<(int, int)>();
       var possibleAttacks = new List<(int, int)>();
-      PieceColor oppositeColor = Utilities.GetOppositeColor(this.Color);
+      PieceColor oppositeColor = Utilities.GetOppositeColor(Color);
 
       foreach (var (rankOffset, fileOffset) in Directions)
       {
@@ -54,11 +58,11 @@ public abstract class PieceLogic : IPieceLogic
          {
             if (Board.IsOccupied(rank, file))
             {
-               Debug.Log($"Square {rank}, {file} is occupied");
+               //Debug.Log($"Square {rank}, {file} is occupied");
                if (Board.GetPieceAtSquare(rank, file).IsColor(oppositeColor))
                {
                   possibleAttacks.Add((rank, file));
-                  Debug.Log($"Added Attack {rank}, {file}");
+                  //Debug.Log($"Added Attack {rank}, {file}");
                }
                break;
             }
@@ -71,7 +75,21 @@ public abstract class PieceLogic : IPieceLogic
       PossibleMoves = possibleMoves;
       PossibleAttacks = possibleAttacks;
    }
-   public bool IsColor(PieceColor color) => this.Color == color;
+
+   private void HandlePieceCliked(object sender, EventArgs e)
+   {
+      Board.GraphicalBoard.ClearHighlitedSquares();
+      Board.SelcectedPiece = Board.GetPieceAtSquare(Position);
+      Board.GraphicalBoard.HighlightSquares(PossibleMoves);
+   }
+
+   public void Move(Coords positionTo)
+   {
+      Position = positionTo;
+      Renderer.UpdateVisualPosition(positionTo);
+   }
+
+   public bool IsColor(PieceColor color) => Color == color;
 }
 
 public class Rook : PieceLogic

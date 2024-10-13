@@ -28,7 +28,7 @@ public class Pawn : PieceLogic
       int file = Position.File;
       var attackDirections = new List<int>() { -1, 1 };
 
-      if (!Board.IsOccupied(oneNextRank, file))
+      if (!Board.IsOccupied(oneNextRank, file) && Utilities.IsWithinBounds(oneNextRank, file))
       {
          //if (enpassant)
 
@@ -36,6 +36,8 @@ public class Pawn : PieceLogic
 
          foreach (int attackFile in attackDirections)
          {
+            if (!Utilities.IsWithinBounds(oneNextRank, attackFile)){ continue; }
+
             if (Board.IsOccupied(oneNextRank, attackFile))
             {
                if (Board.GetPieceAtSquare(oneNextRank, attackFile).IsColor(Color))
