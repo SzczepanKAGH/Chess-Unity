@@ -29,17 +29,7 @@ public class Board
 
    public bool IsUnderAttackBy(int rankIndex, int fileIndex, PieceColor color) { return true; }
 
-   public bool IsMoveLegal(PieceLogic piece, Coords move)
-   {
-      if (piece.PossibleMoves.Contains((move.Rank, move.File)))
-      {
-         return true;
-      }
-      else
-      {
-         return false;
-      }
-   }
+   public bool IsMoveLegal(PieceLogic piece, Coords move) => (piece.PossibleMoves.Contains((move.Rank, move.File)));
 
    public void CalculateAllMoves()
    {
