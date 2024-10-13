@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System;
 using UnityEngine;
 
@@ -41,22 +42,33 @@ public class GraphicalBoard : MonoBehaviour
       return newSquare;
    }
 
-   public void HighlightSquares(List<(int, int)> squareIndices)
+   public void HighlightSquares(List<(int, int)> moveIndices, List<(int, int)> attackIndices)
    {
-      foreach (var (rankIndex, fileIndex) in squareIndices)
+      List<(int, int)> onlyMoveIndices = moveIndices.Except(attackIndices).ToList();
+
+      foreach (var (rankIndex, fileIndex) in onlyMoveIndices)
       {
          Coords squarePosition = new(rankIndex, fileIndex);
          HighlightSquare(squarePosition);
       }
+
+      foreach (var (rankIndex, fileIndex) in attackIndices)
+      {
+         Coords squarePosition = new(rankIndex, fileIndex);
+         HighlightSquare(squarePosition, true);
+      }
    }
 
-   private void HighlightSquare(Coords squarePosition)
+   private void HighlightSquare(Coords squarePosition, bool isAttack = false)
    {
       int rankIndex = squarePosition.Rank;
       int fileIndex = squarePosition.File;
 
       Vector2 squarePositionAsVector = new Vector2(fileIndex - 3.5f, rankIndex - 3.5f);
       GameObject newHighlight = Instantiate(highlightPrefab, squarePositionAsVector, Quaternion.identity);
+
+      if (isAttack) newHighlight.transform.localScale = new Vector2(0.8f, 0.8f);
+ 
 
       highlitedSquares.Add(newHighlight);
    }

@@ -371,6 +371,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   graphicalBoard: {fileID: 1340449194}
+  gameState: 0
 --- !u!4 &1070251331
 Transform:
   m_ObjectHideFlags: 0
@@ -432,8 +433,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilePrefab: {fileID: 6457093003686961730, guid: 131897a0596d88f4187247659febf027, type: 3}
+  highlightPrefab: {fileID: 2130549654139351136, guid: a8aa0ca02b744b348a47c6a89bc7fa60, type: 3}
   whiteMaterial: {fileID: 2100000, guid: d57caab06133853439e5d849a8b8594b, type: 2}
   blackMaterial: {fileID: 2100000, guid: 9ad0f8c0957420f47bb6961f2664d006, type: 2}
+  highlitedSquares: []
 --- !u!114 &1340449195
 MonoBehaviour:
   m_ObjectHideFlags: 0

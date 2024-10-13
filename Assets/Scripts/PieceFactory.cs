@@ -23,6 +23,7 @@ public class PieceFactory : MonoBehaviour
       newPiece.AddComponent<PieceRenderer>();
 
       newPiece.GetComponent<SpriteRenderer>().sprite = PieceRenderer.PieceSprites[$"{pieceColor}_{pieceType}"];
+      newPiece.GetComponent<SpriteRenderer>().sortingOrder = 1;
       newPiece.transform.position = GraphicalBoard.squaresList[pieceCoords.Rank, pieceCoords.File].transform.position;
 
       return newPiece;
@@ -31,10 +32,11 @@ public class PieceFactory : MonoBehaviour
    public static PieceLogic CreatePiece(Coords pieceCoords, PieceType type, PieceColor color, Board board, bool hasMoved = false)
    {
       GameObject visualRepresentation = SpawnPiece(pieceCoords, type, color);
+
       switch (type)
       {
          case PieceType.Pawn:
-            return new Pawn(color, visualRepresentation, pieceCoords, board, hasMoved);
+            return new Pawn(color, visualRepresentation, pieceCoords, board);
 
          case PieceType.Rook:
             return new Rook(color, visualRepresentation, pieceCoords, board, hasMoved);

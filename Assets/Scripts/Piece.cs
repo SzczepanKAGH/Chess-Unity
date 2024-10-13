@@ -61,15 +61,16 @@ public abstract class PieceLogic : IPieceLogic
                //Debug.Log($"Square {rank}, {file} is occupied");
                if (Board.GetPieceAtSquare(rank, file).IsColor(oppositeColor))
                {
+                  possibleMoves.Add((rank, file));
                   possibleAttacks.Add((rank, file));
                   //Debug.Log($"Added Attack {rank}, {file}");
                }
                break;
             }
+            possibleMoves.Add((rank, file));
+
             rank += rankOffset;
             file += fileOffset;
-
-            possibleMoves.Add((rank, file));
          }
       }
       PossibleMoves = possibleMoves;
@@ -79,11 +80,14 @@ public abstract class PieceLogic : IPieceLogic
    private void HandlePieceCliked(object sender, EventArgs e)
    {
       Board.GraphicalBoard.ClearHighlitedSquares();
-      Board.SelcectedPiece = Board.GetPieceAtSquare(Position);
-      Board.GraphicalBoard.HighlightSquares(PossibleMoves);
+      if (Color == Board.GameData.ActivePlayer)
+      {
+         Board.SelcectedPiece = Board.GetPieceAtSquare(Position);
+         Board.GraphicalBoard.HighlightSquares(PossibleMoves, PossibleAttacks);
+      }
    }
 
-   public void Move(Coords positionTo)
+   public virtual void Move(Coords positionTo)
    {
       Position = positionTo;
       Renderer.UpdateVisualPosition(positionTo);

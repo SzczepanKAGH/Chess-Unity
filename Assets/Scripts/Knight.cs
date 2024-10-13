@@ -27,12 +27,12 @@ public class Knight : PieceLogic
          {
             if (Board.IsOccupied(rank, file))
             {
-               Debug.Log($"Square {rank}, {file} is occupied");
+               //Debug.Log($"Square {rank}, {file} is occupied");
                if (Board.GetPieceAtSquare(rank, file).IsColor(oppositeColor))
                {
                   possibleAttacks.Add((rank, file));
                   possibleMoves.Add((rank, file));
-                  Debug.Log($"Added Attack {rank}, {file}");
+                  //Debug.Log($"Added Attack {rank}, {file}");
                   continue;
                }
             }

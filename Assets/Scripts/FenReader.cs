@@ -22,11 +22,11 @@ public class FenReader
 
       string[] fenFlags = Fen.Split(' ');
 
-      string fenActivePlayer = fenFlags[1];
+      char fenActivePlayer = Convert.ToChar(fenFlags[1]);
       string fenCastling = fenFlags[2];
       string fenEnPassant = fenFlags[3];
-      string fenHalfmove = fenFlags[4];
-      string fenNoMove = fenFlags[5];
+      int fenHalfmove = Int32.Parse(fenFlags[4]);
+      int fenNoMove = Int32.Parse(fenFlags[5]);
 
       foreach (char ch in fenFlags[0])
       {
@@ -49,6 +49,17 @@ public class FenReader
             col++;
          }
       }
+
+      GameData newGameData = new()
+      {
+         ActivePlayer = (fenActivePlayer == 'w') ? PieceColor.White : PieceColor.Black,
+         HalfmoveRule = fenHalfmove,
+         MoveNo = fenNoMove,
+      };
+
+
+      board.GameData = newGameData;
+
       return newBoard;
 
    }

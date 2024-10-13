@@ -20,7 +20,13 @@ public class Game : MonoBehaviour
 
    void Update()
    {
-      
+      if (gameState != GameState.Playing)
+      {
+         //end game
+      }
+
+      if (board.MoveHasBeenMade) HandleNewTurn();
+
    }
 
    public Board SetupGame()
@@ -30,5 +36,17 @@ public class Game : MonoBehaviour
       board.LogicalBoard = Board.InitializeBoard(board);
 
       return board;
+   }
+
+   public void HandleNewTurn()
+   {
+      board.ComputeNewTurn();
+      board.ChangeActivePlayer();
+
+      board.GameData.MoveNo += 1;
+      board.CheckForHalfmove();
+      board.CheckForRepetition();
+
+      board.MoveHasBeenMade = false;
    }
 }

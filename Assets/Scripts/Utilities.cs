@@ -35,17 +35,31 @@ public struct Coords
       SquareIndex = squareIndex;
    }
 
+   public static Coords operator +(Coords coords, (int, int) delta) => new(coords.Rank + delta.Item1, coords.File + delta.Item2);
 
    public override string ToString() => $"(R{Rank}-F{File})";
 
    public int GetBoardIndex() => SquareIndex;
+
+   public (int, int) AsTuple() => (Rank, File);
 }
 
 public struct GameData
 {
    public int MoveNo;
    public int HalfmoveRule;
-   public PieceColor ActivePlayer;
-   public Dictionary<PieceColor, Coords> EnPassantSquares;
+   public PieceColor ActivePlayer { get; set; }
+   private Dictionary<PieceColor, Coords> EnPassantSquares { get; }
 
+   public GameData(PieceColor activePlayer, int moveNo, int halfmoveRule)
+   {
+      EnPassantSquares = new Dictionary<PieceColor, Coords>();
+      ActivePlayer = activePlayer;
+      HalfmoveRule = halfmoveRule;
+      MoveNo = moveNo;
+   }
+   public void SetEnPassanSquares(PieceColor enPassant, Coords position)
+   {
+      EnPassantSquares[enPassant] = position;
+   }
 }

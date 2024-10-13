@@ -27,14 +27,14 @@ public class King : PieceLogic
    {
       var possibleMoves = new List<(int, int)>();
       var possibleAttacks = new List<(int, int)>();
+      PieceColor oppositeColor = Utilities.GetOppositeColor(Color);
 
       Directions = new() { (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1) };
 
-      foreach (var (rankOffset, fileOffset) in possibleMoves)
+      foreach (var (rankOffset, fileOffset) in Directions)
       {
          int rank = Position.Rank + rankOffset;
          int file = Position.File + fileOffset;
-         PieceColor oppositeColor = Utilities.GetOppositeColor(this.Color);
 
          if (Utilities.IsWithinBounds(rank, file))
          {

@@ -1,4 +1,5 @@
 
+using System;
 using UnityEngine;
 
 public class Board
@@ -6,6 +7,7 @@ public class Board
    public GraphicalBoard GraphicalBoard;
    public PieceLogic[,] LogicalBoard;
    public PieceLogic SelcectedPiece;
+   public GameData GameData;
    public King WhiteKing;
    public King BlackKing;
    public bool MoveHasBeenMade;
@@ -27,9 +29,22 @@ public class Board
 
    public PieceLogic GetPieceAtSquare(Coords pieceCoords) => LogicalBoard[pieceCoords.Rank, pieceCoords.File];
 
-   public bool IsUnderAttackBy(int rankIndex, int fileIndex, PieceColor color) { return true; }
-
    public bool IsMoveLegal(PieceLogic piece, Coords move) => (piece.PossibleMoves.Contains((move.Rank, move.File)));
+
+   public void ChangeActivePlayer()
+   {
+      GameData.ActivePlayer = Utilities.GetOppositeColor(GameData.ActivePlayer);
+   }
+
+   public void CheckForHalfmove()
+   {
+      //TODO
+   }
+
+   public void CheckForRepetition()
+   {
+      //TODO
+   }
 
    public void CalculateAllMoves()
    {
@@ -67,16 +82,63 @@ public class Board
       }
    }
 
-   private void HandleSquareClicked(object sender , SquareClickedEventArgs e)
+   private void HandleSquareClicked(object sender, SquareClickedEventArgs e)
    {
-      if (SelcectedPiece != null) 
+      Coords positionTo = e.SquarePosition;
+
+      if (SelcectedPiece != null)
       {
-         Coords positionTo = e.SquarePosition;
+         if (SelcectedPiece.PossibleMoves.Contains(positionTo.AsTuple()))
+         {
+            ExecuteMove(positionTo);
+         }
+         else
+         {
+            GraphicalBoard.ClearHighlitedSquares();
+         }
+      }
+   }
+
+   private void ExecuteMove(Coords positionTo)
+   {
          MovePiece(SelcectedPiece.Position, positionTo);
 
          SelcectedPiece = null;
          MoveHasBeenMade = true;
-
-      }
    }
+
+   public void ComputeNewTurn()
+   {
+      foreach (PieceLogic piece in LogicalBoard)
+      {
+         piece?.PossibleMoves.Clear();
+         piece?.PossibleMoves.Clear();
+      }
+      CalculateAllMoves();
+   }
+
+   public bool IsUnderAttackBy(int rankIndex, int fileIndex, PieceColor color) 
+   {
+      foreach (PieceLogic piece in LogicalBoard)
+      {
+         if (piece == null) continue;
+
+         if (piece.Color == color)
+         {
+            // At the first turn king doesnt have attacks calculated but they are needed for other king to check
+            // if square is under attack.        
+            try
+            {
+               if (piece.PossibleAttacks.Contains((rankIndex, fileIndex))) return true;
+            }
+            catch (NullReferenceException) 
+            {
+               if (piece.Type == PieceType.King) continue;
+            }
+         }
+      }
+
+      return false;
+   }
+
 }
