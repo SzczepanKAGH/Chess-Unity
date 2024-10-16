@@ -15,7 +15,9 @@ public class PieceRenderer : MonoBehaviour, IPieceRenderer
 {
    public static Dictionary<string, Sprite> PieceSprites = new Dictionary<string, Sprite>();
 
-   public event EventHandler OnPieceClicked;
+   public event EventHandler<PieceClickedEventArgs> OnPieceClicked;
+
+   public PieceLogic pieceLogic;
 
    public static void LoadSprites()
    {
@@ -30,6 +32,10 @@ public class PieceRenderer : MonoBehaviour, IPieceRenderer
       }
    }
 
+   public void SubscribeToPieceMoved() => pieceLogic.PieceMoved += HandlePieceMoved;
+
+   private void HandlePieceMoved(object sender, PieceMovedEventArgs e) => UpdateVisualPosition(e.Position);
+
    public void UpdateVisualPosition(Coords newPosition)
    {
       float x = newPosition.File - 3.5f;
@@ -40,7 +46,19 @@ public class PieceRenderer : MonoBehaviour, IPieceRenderer
 
    private void OnMouseDown()
    {
-      OnPieceClicked?.Invoke(this, EventArgs.Empty);
+      if (pieceLogic != null)
+      {
+         PieceClickedEventArgs args = new PieceClickedEventArgs(pieceLogic);
+         OnPieceClicked?.Invoke(this, args);
+      }
    }
+}
+public class PieceClickedEventArgs : EventArgs
+{
+   public PieceLogic Piece;
 
+   public PieceClickedEventArgs(PieceLogic piece)
+   {
+      Piece = piece;
+   }
 }

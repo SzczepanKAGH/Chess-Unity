@@ -1,13 +1,16 @@
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Board
 {
    public GraphicalBoard GraphicalBoard;
    public PieceLogic[,] LogicalBoard;
    public PieceLogic SelcectedPiece;
-   public GameData GameData;
+   public ChessGameData GameData;
    public King WhiteKing;
    public King BlackKing;
    public bool MoveHasBeenMade;
@@ -16,24 +19,43 @@ public class Board
    {
       this.GraphicalBoard = graphicalBoard;
       GraphicalBoard.CreateGraphicalBoard();
-      MoveHasBeenMade= false;
+      PieceRenderer.LoadSprites();
+      LogicalBoard = InitializeBoard(this);
+      MoveHasBeenMade = false;
 
       SubscribeToSquareClickedEvents();
+      SubscribeToPieceClickedEvents();
    }
 
-   public static PieceLogic[,] InitializeBoard(Board board) => FenReader.ReadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", board);
-
-   public bool IsOccupied(int rankIndex, int fileIndex) => LogicalBoard[rankIndex, fileIndex] != null;
-
-   public PieceLogic GetPieceAtSquare(int rankIndex, int fileIndex) => LogicalBoard[rankIndex, fileIndex];
-
-   public PieceLogic GetPieceAtSquare(Coords pieceCoords) => LogicalBoard[pieceCoords.Rank, pieceCoords.File];
-
-   public bool IsMoveLegal(PieceLogic piece, Coords move) => (piece.PossibleMoves.Contains((move.Rank, move.File)));
+   public Board() { LogicalBoard = new PieceLogic[8, 8]; }
 
    public void ChangeActivePlayer()
    {
       GameData.ActivePlayer = Utilities.GetOppositeColor(GameData.ActivePlayer);
+   }
+
+   public Board Copy()
+   {
+      Board newBoard = new Board();
+
+      for (int row = 0; row < 8; row++)
+      {
+         for (int col = 0; col < 8; col++)
+         {
+            newBoard.LogicalBoard[row, col] = LogicalBoard[row, col]?.DeepCopy();
+         }
+      }
+
+      return newBoard;
+   }
+
+   public List<PieceLogic> GetPiecesOfColor(PieceColor color)
+   {
+      var pieces = new List<PieceLogic>();
+      
+      foreach (PieceLogic piece in LogicalBoard) if (piece?.Color == color) pieces.Add(piece);
+
+      return pieces;
    }
 
    public void CheckForHalfmove()
@@ -46,39 +68,88 @@ public class Board
       //TODO
    }
 
-   public void CalculateAllMoves()
+   private void MovePiece(Coords positionTo, PieceLogic pieceToMove)
    {
-      for (int i = 0; i < 8; ++i)
-      {
-         for (int j = 0; j < 8; j++)
-         {
-            PieceLogic piece = GetPieceAtSquare(i, j);
-            piece?.GetPossibleMoves();
-         }
-      }
+      Coords positionFrom = pieceToMove.Position;
+
+      SelcectedPiece = null;
+      MoveHasBeenMade = true;
+
+      GraphicalBoard.ClearHighlitedSquares();
+      UpdatePiecePosition(positionTo, pieceToMove);
    }
 
-   public void MovePiece(Coords positionFrom, Coords positionTo)
+   private void HandleCastling(Coords positionTo, PieceLogic pieceToMove)
    {
-      PieceLogic pieceToMove = GetPieceAtSquare(positionFrom);
+      //if 
+   }
 
-      if (IsMoveLegal(pieceToMove, positionTo))
-      {
-         GraphicalBoard.ClearHighlitedSquares();
+   private void UpdatePiecePosition(Coords positionTo, PieceLogic pieceToMove, bool isPieceCopy = false)
+   {
+      isPieceCopy = (GraphicalBoard == null); // Virtual board copies don't have graphicalboard attached
 
-         LogicalBoard[positionFrom.Rank, positionFrom.File] = null;
-         LogicalBoard[positionTo.Rank, positionTo.File] = pieceToMove;
+      LogicalBoard[pieceToMove.Position.Rank, pieceToMove.Position.File] = null;
+      LogicalBoard[positionTo.Rank, positionTo.File] = pieceToMove;
 
-         pieceToMove.Move(positionTo);
-      }
+      //Debug.Log($"Piece moved from {pieceToMove.Position} to {positionTo}");
+      pieceToMove.Move(positionTo, isPieceCopy);
+   }
+
+   public bool IsLegal(Coords moveFrom, Coords moveTo)
+   {
+      Board boardCopy = Copy();
+
+      PieceLogic pieceCopy = boardCopy.GetPieceAtSquare(moveFrom);
+      PieceColor playerColor = pieceCopy.Color;
+
+      boardCopy.UpdatePiecePosition(moveTo, pieceCopy, isPieceCopy: true);
+      boardCopy.CalculateAllMoves(isBoardCopy: true);
+
+      return !boardCopy.IsInCheck(playerColor);
+   }
+
+   public void CalculateAllMoves(bool isBoardCopy = false)
+   {
+      if (!isBoardCopy) foreach (var piece in LogicalBoard) piece?.GetLegalMoves(this);
+
+      else foreach (var piece in LogicalBoard) piece?.GetPossibleMoves(this);
+   }
+
+   public bool IsInCheck(PieceColor kingColor)
+   {
+      List<PieceLogic> enemyPieces = GetPiecesOfColor(Utilities.GetOppositeColor(kingColor));
+
+      return enemyPieces.Any(piece => { return piece.CanCaptureEnemyKing(this); });
    }
 
    public void SubscribeToSquareClickedEvents()
    {
-      foreach (var square in GraphicalBoard.squaresList) 
+      foreach (var square in GraphicalBoard.squaresList)
       {
          var squareScript = square.GetComponent<SquareScript>();
          squareScript.SquareClicked += HandleSquareClicked;
+      }
+   }
+
+   public void SubscribeToPieceClickedEvents()
+   {
+      foreach (var graphicalPiece in GraphicalBoard.graphicalPiecesList)
+      {
+         var pieceRenderer = graphicalPiece.GetComponent<PieceRenderer>();
+         if (pieceRenderer != null) pieceRenderer.OnPieceClicked += HandlePieceClicked;
+      }
+   }
+
+   private void HandlePieceClicked(object sender, PieceClickedEventArgs e)
+   {
+      //Debug.Log(e.Piece.Type);
+      GraphicalBoard.ClearHighlitedSquares();
+      PieceLogic clickedPiece = e.Piece;
+
+      if (clickedPiece.Color == GameData.ActivePlayer)
+      {
+         SelcectedPiece = e.Piece;
+         GraphicalBoard.HighlightSquares(SelcectedPiece.PossibleMoves, SelcectedPiece.PossibleAttacks);
       }
    }
 
@@ -88,57 +159,17 @@ public class Board
 
       if (SelcectedPiece != null)
       {
-         if (SelcectedPiece.PossibleMoves.Contains(positionTo.AsTuple()))
-         {
-            ExecuteMove(positionTo);
-         }
-         else
-         {
-            GraphicalBoard.ClearHighlitedSquares();
-         }
+         if (SelcectedPiece.PossibleMoves.Contains(positionTo)) MovePiece(positionTo, SelcectedPiece);
+
+         else GraphicalBoard.ClearHighlitedSquares();
       }
    }
 
-   private void ExecuteMove(Coords positionTo)
-   {
-         MovePiece(SelcectedPiece.Position, positionTo);
+   public static PieceLogic[,] InitializeBoard(Board board) => FenReader.ReadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", board);
 
-         SelcectedPiece = null;
-         MoveHasBeenMade = true;
-   }
+   public bool IsOccupied(Coords position) => LogicalBoard[position.Rank, position.File] != null;
 
-   public void ComputeNewTurn()
-   {
-      foreach (PieceLogic piece in LogicalBoard)
-      {
-         piece?.PossibleMoves.Clear();
-         piece?.PossibleMoves.Clear();
-      }
-      CalculateAllMoves();
-   }
+   public PieceLogic GetPieceAtSquare(Coords pieceCoords) => LogicalBoard[pieceCoords.Rank, pieceCoords.File];
 
-   public bool IsUnderAttackBy(int rankIndex, int fileIndex, PieceColor color) 
-   {
-      foreach (PieceLogic piece in LogicalBoard)
-      {
-         if (piece == null) continue;
-
-         if (piece.Color == color)
-         {
-            // At the first turn king doesnt have attacks calculated but they are needed for other king to check
-            // if square is under attack.        
-            try
-            {
-               if (piece.PossibleAttacks.Contains((rankIndex, fileIndex))) return true;
-            }
-            catch (NullReferenceException) 
-            {
-               if (piece.Type == PieceType.King) continue;
-            }
-         }
-      }
-
-      return false;
-   }
-
+   //public bool IsMoveLegal(PieceLogic piece, Coords move) => (piece.PossibleMoves.Contains(move));
 }

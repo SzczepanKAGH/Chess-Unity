@@ -10,8 +10,9 @@ public class GraphicalBoard : MonoBehaviour
    public GameObject highlightPrefab;
    public Material whiteMaterial;
    public Material blackMaterial;
-   public static GameObject[,] squaresList = new GameObject[8, 8];
+   public GameObject[,] squaresList = new GameObject[8, 8];
    public List<GameObject> highlitedSquares = new();
+   public List<GameObject> graphicalPiecesList = new();
 
    public void CreateGraphicalBoard()
    {
@@ -42,21 +43,12 @@ public class GraphicalBoard : MonoBehaviour
       return newSquare;
    }
 
-   public void HighlightSquares(List<(int, int)> moveIndices, List<(int, int)> attackIndices)
+   public void HighlightSquares(List<Coords> moveCoords, HashSet<Coords> attackCoords)
    {
-      List<(int, int)> onlyMoveIndices = moveIndices.Except(attackIndices).ToList();
+      List<Coords> onlyMoves = moveCoords.Except(attackCoords).ToList();
 
-      foreach (var (rankIndex, fileIndex) in onlyMoveIndices)
-      {
-         Coords squarePosition = new(rankIndex, fileIndex);
-         HighlightSquare(squarePosition);
-      }
-
-      foreach (var (rankIndex, fileIndex) in attackIndices)
-      {
-         Coords squarePosition = new(rankIndex, fileIndex);
-         HighlightSquare(squarePosition, true);
-      }
+      foreach (var squareToMove in onlyMoves) HighlightSquare(squareToMove);
+      foreach (var squareToAttack in attackCoords) HighlightSquare(squareToAttack, true);
    }
 
    private void HighlightSquare(Coords squarePosition, bool isAttack = false)
@@ -69,15 +61,11 @@ public class GraphicalBoard : MonoBehaviour
 
       if (isAttack) newHighlight.transform.localScale = new Vector2(0.8f, 0.8f);
  
-
       highlitedSquares.Add(newHighlight);
    }
 
    public void ClearHighlitedSquares()
    {
-      foreach (GameObject highlitedSquare in highlitedSquares)
-      {
-         Destroy(highlitedSquare);
-      }
+      foreach (GameObject highlitedSquare in highlitedSquares) Destroy(highlitedSquare);
    }
 }

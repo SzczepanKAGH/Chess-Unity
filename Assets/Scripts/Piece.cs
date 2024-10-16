@@ -1,9 +1,7 @@
-using JetBrains.Annotations;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 using System;
-using UnityEngine.UIElements;
+
 
 
 public interface IPieceLogic
@@ -11,126 +9,120 @@ public interface IPieceLogic
    public PieceType Type { get; }
    public PieceColor Color { get; }
    public Coords Position { get; }
-   public GameObject GraphicalRepresentation { get; }
-   public List<(int, int)> PossibleMoves { get; set; }
-   public List<(int, int)> PossibleAttacks { get; set; }
-   public void GetPossibleMoves();
+   public List<Coords> PossibleMoves { get; set; }
+   public HashSet<Coords> PossibleAttacks { get; set; }
+   public void GetPossibleMoves(Board board);
    public bool IsColor(PieceColor color);
 }
 
 public abstract class PieceLogic : IPieceLogic
 {
+   public event EventHandler<PieceMovedEventArgs> PieceMoved;
    public Coords Position { get; set; }
    public abstract PieceType Type { get; }
    public PieceColor Color { get; }
-   public PieceRenderer Renderer { get; }
-   public GameObject GraphicalRepresentation { get; }
-   public List<(int, int)> PossibleMoves { get; set; }
-   public List<(int, int)> PossibleAttacks { get; set; }
-
+   public List<Coords> PossibleMoves { get; set; }
+   public HashSet<Coords> PossibleAttacks { get; set; }
+   public virtual bool HasMoved { get; set; } = false;
+   
    protected List<(int, int)> Directions = new List<(int, int)>();
 
-   protected Board Board { get; }
-
-   public PieceLogic(PieceColor color, GameObject representation, Coords position, Board board)
+   public PieceLogic(PieceColor color, Coords position)
    {
-      this.GraphicalRepresentation = representation;
-      this.Renderer = GraphicalRepresentation.GetComponent<PieceRenderer>();
       this.Color = color;
       this.Position = position;
-      this.Board = board;
-
-      Renderer.OnPieceClicked += HandlePieceCliked;
+      this.PossibleMoves = new List<Coords>();
+      this.PossibleAttacks = new HashSet<Coords>();  
    }
 
-   public virtual void GetPossibleMoves()
+   public PieceLogic ShallowCopy()
    {
-      var possibleMoves = new List<(int, int)>();
-      var possibleAttacks = new List<(int, int)>();
+      return (PieceLogic)MemberwiseClone();
+   }
+
+   public PieceLogic DeepCopy()
+   {
+      PieceLogic copy = (PieceLogic)MemberwiseClone();
+
+      copy.PossibleMoves = new List<Coords>(PossibleMoves);
+      copy.PossibleAttacks = new HashSet<Coords>(PossibleAttacks);
+
+      return copy;
+   }
+
+   public void GetLegalMoves(Board board)
+   {
+      GetPossibleMoves(board);
+      DiscardIllegalMoves(board);
+   }
+
+   public virtual void GetPossibleMoves(Board board)
+   {
+      PossibleMoves.Clear();
+      PossibleAttacks.Clear();
+
       PieceColor oppositeColor = Utilities.GetOppositeColor(Color);
 
       foreach (var (rankOffset, fileOffset) in Directions)
       {
-         int rank = Position.Rank + rankOffset;
-         int file = Position.File + fileOffset;
+         Coords possibleMove = Position + (rankOffset, fileOffset);
 
-         while (Utilities.IsWithinBounds(rank, file))
+         while (Utilities.IsWithinBounds(possibleMove))
          {
-            if (Board.IsOccupied(rank, file))
+            if (board.IsOccupied(possibleMove))
             {
-               //Debug.Log($"Square {rank}, {file} is occupied");
-               if (Board.GetPieceAtSquare(rank, file).IsColor(oppositeColor))
+               if (board.GetPieceAtSquare(possibleMove).Color == oppositeColor)
                {
-                  possibleMoves.Add((rank, file));
-                  possibleAttacks.Add((rank, file));
-                  //Debug.Log($"Added Attack {rank}, {file}");
+                  PossibleMoves.Add(possibleMove);
+                  PossibleAttacks.Add(possibleMove);
                }
                break;
             }
-            possibleMoves.Add((rank, file));
-
-            rank += rankOffset;
-            file += fileOffset;
+            else
+            {
+               PossibleMoves.Add(possibleMove);
+            }
+            possibleMove += (rankOffset, fileOffset);
          }
       }
-      PossibleMoves = possibleMoves;
-      PossibleAttacks = possibleAttacks;
    }
 
-   private void HandlePieceCliked(object sender, EventArgs e)
+   protected virtual void DiscardIllegalMoves(Board board) 
    {
-      Board.GraphicalBoard.ClearHighlitedSquares();
-      if (Color == Board.GameData.ActivePlayer)
-      {
-         Board.SelcectedPiece = Board.GetPieceAtSquare(Position);
-         Board.GraphicalBoard.HighlightSquares(PossibleMoves, PossibleAttacks);
-      }
+      PossibleMoves.RemoveAll(move => !board.IsLegal(Position, move));
+      PossibleAttacks = PossibleAttacks.Intersect(PossibleMoves).ToHashSet<Coords>();
    }
 
-   public virtual void Move(Coords positionTo)
+   public virtual bool CanCaptureEnemyKing(Board board)
+   {
+      foreach (Coords attackMove in PossibleAttacks)
+      {
+         if (board.GetPieceAtSquare(attackMove).Type == PieceType.King) return true;
+      }
+      return false;
+   }
+
+   public virtual void Move(Coords positionTo, bool isClone = false)
    {
       Position = positionTo;
-      Renderer.UpdateVisualPosition(positionTo);
+      if (!isClone) RaiseMovedEvent(new PieceMovedEventArgs(Position));
    }
+
+   protected void RaiseMovedEvent(PieceMovedEventArgs eventArgs) => PieceMoved?.Invoke(this, eventArgs);
 
    public bool IsColor(PieceColor color) => Color == color;
+
+   public virtual bool CanCastleQueenSide(Board board) { throw new NotImplementedException($"Piece {Type} can't castle"); }
+   public virtual bool CanCastleKingSide(Board board) { throw new NotImplementedException($"Piece {Type} can't castle"); }
 }
 
-public class Rook : PieceLogic
+public class PieceMovedEventArgs : EventArgs
 {
-   public override PieceType Type => PieceType.Rook;
-   public bool HasMoved { get; set; }
+   public Coords Position;
 
-   public Rook(PieceColor color, GameObject representation, Coords position, Board board, bool hasMoved = false)
-      : base(color, representation, position, board)
+   public PieceMovedEventArgs(Coords position)
    {
-      Directions = new() { (-1, 0), (0, -1), (1, 0), (0, 1) };
-      this.HasMoved = hasMoved;
+      Position = position;
    }
 }
-
-public class Bishop : PieceLogic
-{
-   public override PieceType Type => PieceType.Bishop;
-
-   public Bishop(PieceColor color, GameObject representation, Coords position, Board board, bool hasMoved = false)
-      : base(color, representation, position, board) 
-   {
-      Directions = new() { (-1, -1), (1, -1), (1, 1), (1, -1) };
-   }
-
-}
-
-public class Queen : PieceLogic
-{
-   public override PieceType Type => PieceType.Queen;
-
-   public Queen(PieceColor color, GameObject representation, Coords position, Board board, bool hasMoved = false)
-      : base(color, representation, position, board) 
-   {
-      Directions = new() { (-1, 0), (0, -1), (1, 0), (0, 1), (-1, -1), (1, -1), (1, 1), (1, -1) };
-   }
-
-}
-
 

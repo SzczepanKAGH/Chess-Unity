@@ -5,9 +5,9 @@ public class Utilities
 {
    public static bool IsLightSquare(int rankIndex, int fileIndex) => ((fileIndex + rankIndex) % 2 != 0);
   
-   public static bool IsWithinBounds(int rankIndex, int fileIndex)
+   public static bool IsWithinBounds(Coords moveTo)
    {
-      return rankIndex >= 0 && rankIndex < 8 && fileIndex >= 0 && fileIndex < 8;
+      return moveTo.Rank >= 0 && moveTo.Rank < 8 && moveTo.File >= 0 && moveTo.File < 8;
    }
 
    public static PieceColor GetOppositeColor(PieceColor color)
@@ -35,29 +35,30 @@ public struct Coords
       SquareIndex = squareIndex;
    }
 
+  
+
    public static Coords operator +(Coords coords, (int, int) delta) => new(coords.Rank + delta.Item1, coords.File + delta.Item2);
 
    public override string ToString() => $"(R{Rank}-F{File})";
 
-   public int GetBoardIndex() => SquareIndex;
-
    public (int, int) AsTuple() => (Rank, File);
 }
 
-public struct GameData
+public struct ChessGameData
 {
    public int MoveNo;
    public int HalfmoveRule;
    public PieceColor ActivePlayer { get; set; }
    private Dictionary<PieceColor, Coords> EnPassantSquares { get; }
 
-   public GameData(PieceColor activePlayer, int moveNo, int halfmoveRule)
+   public ChessGameData(PieceColor activePlayer, int moveNo, int halfmoveRule)
    {
       EnPassantSquares = new Dictionary<PieceColor, Coords>();
       ActivePlayer = activePlayer;
       HalfmoveRule = halfmoveRule;
       MoveNo = moveNo;
    }
+
    public void SetEnPassanSquares(PieceColor enPassant, Coords position)
    {
       EnPassantSquares[enPassant] = position;

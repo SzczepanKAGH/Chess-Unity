@@ -13,7 +13,7 @@ public class Game : MonoBehaviour
    
    void Start()
    {
-      board = SetupGame();
+      board = new Board(graphicalBoard);
       board.CalculateAllMoves();
       gameState = GameState.Playing;
    }
@@ -25,28 +25,20 @@ public class Game : MonoBehaviour
          //end game
       }
 
-      if (board.MoveHasBeenMade) HandleNewTurn();
+      if (board.MoveHasBeenMade) HandleNewTurn(); 
 
-   }
-
-   public Board SetupGame()
-   {
-      PieceRenderer.LoadSprites();
-      var board = new Board(graphicalBoard);
-      board.LogicalBoard = Board.InitializeBoard(board);
-
-      return board;
    }
 
    public void HandleNewTurn()
    {
-      board.ComputeNewTurn();
+      //Debug.Log("NewTurn");
+      board.MoveHasBeenMade = false;
+      
+      board.CalculateAllMoves();
       board.ChangeActivePlayer();
 
       board.GameData.MoveNo += 1;
       board.CheckForHalfmove();
       board.CheckForRepetition();
-
-      board.MoveHasBeenMade = false;
    }
 }

@@ -1,7 +1,8 @@
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public class FenReader
 {
@@ -17,18 +18,19 @@ public class FenReader
 
    public static PieceLogic[,] ReadFEN(string Fen, Board board)
    {
-      var newBoard = new PieceLogic[8, 8];
+      var newLogicalBoard = new PieceLogic[8, 8];
       int row = 7, col = 0;
 
       string[] fenFlags = Fen.Split(' ');
 
+      char[] fenPieceSetup = fenFlags[0].ToCharArray();
       char fenActivePlayer = Convert.ToChar(fenFlags[1]);
       string fenCastling = fenFlags[2];
       string fenEnPassant = fenFlags[3];
       int fenHalfmove = Int32.Parse(fenFlags[4]);
       int fenNoMove = Int32.Parse(fenFlags[5]);
 
-      foreach (char ch in fenFlags[0])
+      foreach (char ch in fenPieceSetup)
       {
          if (ch == '/')
          {
@@ -43,24 +45,43 @@ public class FenReader
          {
             var coords = new Coords(row, col);
             var (color, type) = fenNotationTranslator[ch];
-            PieceLogic piece = PieceFactory.CreatePiece(coords ,type, color, board);
+            PieceLogic piece = PieceFactory.CreatePiece(coords ,type, color, board.GraphicalBoard);
 
-            newBoard[row, col] = piece;
+            newLogicalBoard[row, col] = piece;
             col++;
          }
       }
 
-      GameData newGameData = new()
+      CheckForCastlingRights(newLogicalBoard, fenCastling);
+
+      ChessGameData newGameData = new()
       {
          ActivePlayer = (fenActivePlayer == 'w') ? PieceColor.White : PieceColor.Black,
          HalfmoveRule = fenHalfmove,
          MoveNo = fenNoMove,
       };
 
-
       board.GameData = newGameData;
 
-      return newBoard;
+      return newLogicalBoard;
+   }
 
+   private static void CheckForCastlingRights(PieceLogic[,] logicalBoard, string castlingString)
+   {
+      char[] castlingRights = castlingString.ToCharArray();
+
+      Dictionary<(int, int), char> basicRookPositions = new Dictionary<(int, int), char>() 
+      { 
+         { (0, 0), 'Q' }, { (0, 7), 'K' }, { (7, 0), 'q' }, { (7, 7), 'k' }
+      };
+
+      foreach (var (rookRank, rookFile) in basicRookPositions.Keys) 
+      {
+         if (logicalBoard[rookRank, rookFile]?.Type == PieceType.Rook &&
+             castlingRights.Contains(basicRookPositions[(rookRank, rookFile)]))
+         {
+            logicalBoard[rookRank, rookFile].HasMoved = false;
+         }
+      }
    }
 }

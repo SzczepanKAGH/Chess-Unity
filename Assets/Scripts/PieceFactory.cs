@@ -1,17 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PieceFactory : MonoBehaviour
 {
-   public static PieceRenderer pieceRenderer;
-
-   private void Awake()
-   {
-      pieceRenderer = gameObject.AddComponent<PieceRenderer>();
-   }
-
-   public static GameObject SpawnPiece(Coords pieceCoords, PieceType pieceType, PieceColor pieceColor)
+   public static void SpawnGraphicalPiece(
+         GraphicalBoard graphicalBoard,
+         PieceLogic pieceLogic,
+         Coords pieceCoords,
+         PieceType pieceType,
+         PieceColor pieceColor)
    {
       var newPiece = new GameObject();
       newPiece.name = $"{pieceType}-{pieceColor}-{pieceCoords}";
@@ -22,40 +21,42 @@ public class PieceFactory : MonoBehaviour
       newPiece.AddComponent<SpriteRenderer>();
       newPiece.AddComponent<PieceRenderer>();
 
-      newPiece.GetComponent<SpriteRenderer>().sprite = PieceRenderer.PieceSprites[$"{pieceColor}_{pieceType}"];
-      newPiece.GetComponent<SpriteRenderer>().sortingOrder = 1;
-      newPiece.transform.position = GraphicalBoard.squaresList[pieceCoords.Rank, pieceCoords.File].transform.position;
+      newPiece.GetComponent<PieceRenderer>().pieceLogic = pieceLogic;
+      newPiece.GetComponent<PieceRenderer>().SubscribeToPieceMoved();
 
-      return newPiece;
+      newPiece.GetComponent<SpriteRenderer>().sprite = PieceRenderer.PieceSprites[$"{pieceColor}_{pieceType}"];
+      newPiece.GetComponent<SpriteRenderer>().sortingLayerID = SortingLayer.NameToID("Pieces");
+      
+
+      newPiece.transform.position = graphicalBoard.squaresList[pieceCoords.Rank, pieceCoords.File].transform.position;
+      
+      newPiece.transform.position = new Vector3(newPiece.transform.position.x,
+                                                newPiece.transform.position.y,
+                                                newPiece.transform.position.z - 1);
+
+
+      graphicalBoard.graphicalPiecesList.Add(newPiece);
    }
 
-   public static PieceLogic CreatePiece(Coords pieceCoords, PieceType type, PieceColor color, Board board, bool hasMoved = false)
+   public static PieceLogic CreatePiece(Coords pieceCoords,
+                                        PieceType type,
+                                        PieceColor color,
+                                        GraphicalBoard graphicalBoard,
+                                        bool hasMoved = false)
    {
-      GameObject visualRepresentation = SpawnPiece(pieceCoords, type, color);
-
-      switch (type)
+      PieceLogic piece = type switch
       {
-         case PieceType.Pawn:
-            return new Pawn(color, visualRepresentation, pieceCoords, board);
+         PieceType.Pawn => new Pawn(color, pieceCoords),
+         PieceType.Queen => new Queen(color, pieceCoords),
+         PieceType.Knight => new Knight(color, pieceCoords),
+         PieceType.Bishop => new Bishop(color, pieceCoords),
+         PieceType.Rook => new Rook(color, pieceCoords),
+         PieceType.King => new King(color, pieceCoords),
+         _ => null,
+      };
 
-         case PieceType.Rook:
-            return new Rook(color, visualRepresentation, pieceCoords, board, hasMoved);
+      SpawnGraphicalPiece(graphicalBoard, piece, pieceCoords, type, color);
 
-         case PieceType.Knight:
-            return new Knight(color, visualRepresentation, pieceCoords, board);
-
-         case PieceType.Bishop:
-            return new Bishop(color, visualRepresentation, pieceCoords, board);
-
-         case PieceType.Queen:
-            return new Queen(color, visualRepresentation, pieceCoords, board);
-
-         case PieceType.King:
-            return new King(color, visualRepresentation, pieceCoords, board, true, true, hasMoved);
-
-         default:
-            return null;
-      }
-
+      return piece;
    }
 }
