@@ -32,7 +32,6 @@ public class Game : MonoBehaviour
 
    public IEnumerator HandleNewTurn()
    {
-      //Debug.Log("NewTurn");
       board.MoveHasBeenMade = false;
       
       board.CheckForPromotion();
@@ -42,7 +41,6 @@ public class Game : MonoBehaviour
       board.CalculateAllMoves();
       board.ChangeActivePlayer();
       PlayMoveSound(board);
-
 
       board.GameData.MoveNo += 1;
       board.CheckForHalfmove();
@@ -54,7 +52,6 @@ public class Game : MonoBehaviour
    private void PlayMoveSound(Board board)
    {
       MoveType moveType = board.GameData.LastMoveType;
-      PieceColor activePlayer = board.GameData.ActivePlayer;
       if (board.IsInCheck(board.GameData.ActivePlayer)) moveType = MoveType.check;
 
       switch (moveType)

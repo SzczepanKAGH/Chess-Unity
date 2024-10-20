@@ -1,12 +1,9 @@
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class Board
 {
@@ -17,7 +14,6 @@ public class Board
    public bool MoveHasBeenMade;
    public bool PromotionPieceChosen = true;
 
-   private ManualResetEvent promotionWaitHandle = new ManualResetEvent(false);
 
    public Board(GraphicalBoard graphicalBoard, SoundManager soundManager)
    {
@@ -45,7 +41,7 @@ public class Board
 
    public Board Copy()
    {
-      Board newBoard = new Board();
+      Board newBoard = new();
 
       for (int row = 0; row < 8; row++)
       {
@@ -54,7 +50,7 @@ public class Board
             newBoard.LogicalBoard[row, col] = LogicalBoard[row, col]?.DeepCopy();
          }
       }
-      //Debug.Log("Board Copied");
+
       newBoard.GameData = GameData.DeepCopy();
 
       return newBoard;
@@ -263,7 +259,6 @@ public class Board
 
    private void HandlePieceClicked(object sender, PieceClickedEventArgs e)
    {
-      //Debug.Log(e.Piece.Type);
       BoardUI.ClearHighlitedSquares();
       PieceLogic clickedPiece = e.Piece;
 
@@ -293,13 +288,13 @@ public class Board
       }
    }
 
-   public void SetPromotionPieceChosen() => promotionWaitHandle.Set();
+   private static string defaultStartingPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-   public static PieceLogic[,] InitializeBoard(Board board) => FenReader.ReadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", board);
+   private static string enPassantTest = "8/6bb/8/8/R1pP2k1/4P3/P7/K7 b - d3 0 0";
+
+   public static PieceLogic[,] InitializeBoard(Board board) => FenReader.ReadFEN(defaultStartingPosition, board);
 
    public bool IsOccupied(Coords position) => LogicalBoard[position.Rank, position.File] != null;
 
    public PieceLogic GetPieceAtSquare(Coords pieceCoords) => LogicalBoard[pieceCoords.Rank, pieceCoords.File];
-
-   //public bool IsMoveLegal(PieceLogic piece, Coords move) => (piece.PossibleMoves.Contains(move));
 }

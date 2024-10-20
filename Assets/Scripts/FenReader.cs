@@ -58,6 +58,8 @@ public class FenReader
 
       ChessGameData newGameData = new(activePlayer, fenNoMove, fenHalfmove);
 
+      CheckForEnPassantSquares(fenEnPassant, newGameData);
+
       board.GameData = newGameData;
 
       return newLogicalBoard;
@@ -69,10 +71,11 @@ public class FenReader
       {
          char[] enPassantNotation = fenEnPassant.ToCharArray();
 
-         int enPassantFile = enPassantNotation[0] - 'a' + 1; // Converts letters to number eg.
+         int enPassantFile = enPassantNotation[0] - 'a'; // Converts letters to number eg.
                                // a -> 1, b -> 2 using default ASCII letter to int conversion.
 
-         int enPassantRank = Convert.ToInt32(enPassantNotation[1]);
+         int enPassantRank = (int)char.GetNumericValue(enPassantNotation[1]) - 1;
+         Debug.Log(new Coords(enPassantRank, enPassantFile));
 
          gameData.SetEnPassantSquare(new Coords(enPassantRank, enPassantFile));  
       }
