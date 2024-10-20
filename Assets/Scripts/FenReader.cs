@@ -45,7 +45,7 @@ public class FenReader
          {
             var coords = new Coords(row, col);
             var (color, type) = fenNotationTranslator[ch];
-            PieceLogic piece = PieceFactory.CreatePiece(coords ,type, color, board.GraphicalBoard);
+            PieceLogic piece = PieceFactory.CreatePiece(coords ,type, color, board.BoardUI);
 
             newLogicalBoard[row, col] = piece;
             col++;
@@ -54,22 +54,36 @@ public class FenReader
 
       CheckForCastlingRights(newLogicalBoard, fenCastling);
 
-      ChessGameData newGameData = new()
-      {
-         ActivePlayer = (fenActivePlayer == 'w') ? PieceColor.White : PieceColor.Black,
-         HalfmoveRule = fenHalfmove,
-         MoveNo = fenNoMove,
-      };
+      PieceColor activePlayer = (fenActivePlayer == 'w') ? PieceColor.White : PieceColor.Black;
+
+      ChessGameData newGameData = new(activePlayer, fenNoMove, fenHalfmove);
 
       board.GameData = newGameData;
 
       return newLogicalBoard;
    }
 
+   private static void CheckForEnPassantSquares(string fenEnPassant, ChessGameData gameData)
+   {
+      if (fenEnPassant != "-") 
+      {
+         char[] enPassantNotation = fenEnPassant.ToCharArray();
+
+         int enPassantFile = enPassantNotation[0] - 'a' + 1; // Converts letters to number eg.
+                               // a -> 1, b -> 2 using default ASCII letter to int conversion.
+
+         int enPassantRank = Convert.ToInt32(enPassantNotation[1]);
+
+         gameData.SetEnPassantSquare(new Coords(enPassantRank, enPassantFile));  
+      }
+   }
+
    private static void CheckForCastlingRights(PieceLogic[,] logicalBoard, string castlingString)
    {
       char[] castlingRights = castlingString.ToCharArray();
 
+      // Dictionary consist of starting rook positions and castling rights corresponding to
+      // each eg. => 'Q' white queen side rook 
       Dictionary<(int, int), char> basicRookPositions = new Dictionary<(int, int), char>() 
       { 
          { (0, 0), 'Q' }, { (0, 7), 'K' }, { (7, 0), 'q' }, { (7, 7), 'k' }

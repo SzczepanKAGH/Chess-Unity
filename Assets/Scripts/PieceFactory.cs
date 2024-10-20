@@ -19,10 +19,10 @@ public class PieceFactory : MonoBehaviour
       pieceColider.isTrigger = true;
 
       newPiece.AddComponent<SpriteRenderer>();
-      newPiece.AddComponent<PieceRenderer>();
+      PieceRenderer newPieceRenderer = newPiece.AddComponent<PieceRenderer>();
 
-      newPiece.GetComponent<PieceRenderer>().pieceLogic = pieceLogic;
-      newPiece.GetComponent<PieceRenderer>().SubscribeToPieceMoved();
+      newPieceRenderer.pieceLogic = pieceLogic;
+      newPieceRenderer.SubscribeToPieceMoved();
 
       newPiece.GetComponent<SpriteRenderer>().sprite = PieceRenderer.PieceSprites[$"{pieceColor}_{pieceType}"];
       newPiece.GetComponent<SpriteRenderer>().sortingLayerID = SortingLayer.NameToID("Pieces");
@@ -41,8 +41,7 @@ public class PieceFactory : MonoBehaviour
    public static PieceLogic CreatePiece(Coords pieceCoords,
                                         PieceType type,
                                         PieceColor color,
-                                        GraphicalBoard graphicalBoard,
-                                        bool hasMoved = false)
+                                        GraphicalBoard graphicalBoard)
    {
       PieceLogic piece = type switch
       {

@@ -8,11 +8,15 @@ public class GraphicalBoard : MonoBehaviour
 {
    public GameObject tilePrefab;
    public GameObject highlightPrefab;
+   public GameObject promotionTilePrefab;
    public Material whiteMaterial;
    public Material blackMaterial;
+
    public GameObject[,] squaresList = new GameObject[8, 8];
    public List<GameObject> highlitedSquares = new();
    public List<GameObject> graphicalPiecesList = new();
+   public Dictionary<int ,string> figuresToPromote = new Dictionary<int ,string>() { {0, "Queen" }, { 1, "Knight"},
+                                                                                       {2, "Rook" }, {3, "Bishop"}};
 
    public void CreateGraphicalBoard()
    {
@@ -26,10 +30,74 @@ public class GraphicalBoard : MonoBehaviour
 
             newSquare.GetComponent<SquareScript>().SquarePosition = new Coords(rankIdx, fileIdx);
 
-
             squaresList[rankIdx, fileIdx] = (newSquare);
          }
       }
+   }
+
+   public GameObject[] CreatePromotionMenu(PieceColor promotingSide, Coords promotionCoords)
+   {
+      GameObject[] promotionMenu = new GameObject[4];
+      for (int tileOffset = 0; tileOffset < 4; tileOffset++)
+      {
+         var promotionAlternative = CreatePromotionTile(tileOffset, promotionCoords, promotingSide);
+         promotionAlternative.GetComponent<PromotionScript>().SetPiece(tileOffset, promotionCoords, promotingSide);
+         promotionMenu[tileOffset] = promotionAlternative;
+      }
+      return promotionMenu;
+   }
+
+   public void DestroyPieceGraphic(Coords piecePosition, EventHandler<PieceClickedEventArgs> pieceClickedEventHandler)
+   {
+      GameObject pieceForRemoval = graphicalPiecesList.FirstOrDefault(piece =>
+         piece.GetComponent<PieceRenderer>().pieceLogic.Position == piecePosition);
+
+      pieceForRemoval.GetComponent<PieceRenderer>().OnPieceClicked -= pieceClickedEventHandler;
+      graphicalPiecesList.Remove(pieceForRemoval);
+      Destroy(pieceForRemoval);
+   }
+
+   public void DestroyPromotionMenu(EventHandler<PieceToPromoteChosen> pieceToPromoteChosenEventHandler)
+   {
+      GameObject[] promotionTiles = GameObject.FindGameObjectsWithTag("PromotionTile");
+
+      foreach (GameObject promotionTile in promotionTiles)
+      {
+         var promotionScript = promotionTile.GetComponent<PromotionScript>();
+         promotionScript.OnPromotionChosen -= pieceToPromoteChosenEventHandler;
+
+         Destroy(promotionTile);
+      }
+   }
+
+   private GameObject CreatePromotionTile(int tileOffset, Coords promotionCoords, PieceColor promotingSide)
+   {
+      int offsetDirection = (promotingSide == PieceColor.White) ? -1 : 1;
+
+      float tileXpos = promotionCoords.File - 3.5f;
+      float tileYpos = promotionCoords.Rank - 3.5f + tileOffset * offsetDirection;
+      var tilePosition = new Vector3(tileXpos, tileYpos, -2);
+
+      GameObject promotionTile = Instantiate(promotionTilePrefab, tilePosition, Quaternion.identity);
+      promotionTile.GetComponent<SpriteRenderer>().sortingLayerID = SortingLayer.NameToID("PromotionLayer");
+
+      string figureToPromoteID = $"Piece={figuresToPromote[tileOffset]}, Side={promotingSide}";
+      SetupPromotionPieceGraphic(promotionTile ,figureToPromoteID);
+
+      return promotionTile;
+   }
+
+   private void SetupPromotionPieceGraphic(GameObject promotionTile, string figureID)
+   {
+      GameObject figureToPromoteObject = new GameObject($"figureToPromote-{figureID}");
+      figureToPromoteObject.transform.parent = promotionTile.transform;
+      figureToPromoteObject.transform.position = promotionTile.transform.position;
+
+      SpriteRenderer spriteRendererFigure = figureToPromoteObject.AddComponent<SpriteRenderer>();
+
+      spriteRendererFigure.sprite = Resources.Load<Sprite>($"Sprites/{figureID}");
+      spriteRendererFigure.sortingLayerID = SortingLayer.NameToID("PromotionLayer");
+      spriteRendererFigure.sortingOrder = 1;
    }
 
    private GameObject CreateSquare(bool isLight, Vector2 position)
@@ -39,7 +107,6 @@ public class GraphicalBoard : MonoBehaviour
 
       renderer.material = (isLight) ? whiteMaterial : blackMaterial;
 
-      newSquare.AddComponent<SquareScript>();
       return newSquare;
    }
 

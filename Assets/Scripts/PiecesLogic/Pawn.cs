@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Pawn : PieceLogic
@@ -27,18 +28,19 @@ public class Pawn : PieceLogic
       Coords oneSquareMove = Position + (direction, 0);
       Coords twoSquareMove = Position + (2 * direction, 0);
 
-      if (!board.IsOccupied(oneSquareMove))
+
+      if (Utilities.IsWithinBounds(oneSquareMove))
       {
-         //if (enpassant)
-         PossibleMoves.Add(oneSquareMove);
-
-
-         if (!HasMoved && !board.IsOccupied(twoSquareMove))
+         if (!board.IsOccupied(oneSquareMove))
          {
-            PossibleMoves.Add(twoSquareMove);
+            PossibleMoves.Add(oneSquareMove);
+
+            if (!HasMoved && !board.IsOccupied(twoSquareMove))
+            {
+               PossibleMoves.Add(twoSquareMove);
+            }
          }
       }
-
       var attackDirections = new List<int>() { -1, 1 };
 
       foreach (int attackDelta in attackDirections)
@@ -53,12 +55,10 @@ public class Pawn : PieceLogic
             PossibleMoves.Add(possibleAttack);
             PossibleAttacks.Add(possibleAttack);
          }
-      }
-
-
-      if (PossibleMoves.Any(move => move.Rank == 0 || move.Rank == 7))
-      {
-         //handle promotion
+         else if (board.GameData.GetEnPassantSquare() == possibleAttack)
+         {
+            PossibleMoves.Add(possibleAttack);
+         }
       }
    }
 
