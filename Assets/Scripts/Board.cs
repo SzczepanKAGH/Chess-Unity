@@ -2,17 +2,33 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using UnityEngine;
 
-public class Board
+public interface IBoard
 {
-   public GraphicalBoard BoardUI;
-   public PieceLogic[,] LogicalBoard;
-   public PieceLogic SelectedPiece;
+   void ChangeActivePlayer();
+   Board Copy();
+   void SetMoveType(MoveType type);
+   List<PieceLogic> GetPiecesOfColor(PieceColor color);
+   bool CheckForHalfmove();
+   bool DetectStalemate();
+   bool DetectCheckmate();
+   bool CheckForPromotion();
+   void CalculateAllMoves(bool isBoardCopy = false);
+   bool IsInCheck(PieceColor kingColor);
+   bool IsLegal(Coords moveFrom, Coords moveTo);
+   bool IsOccupied(Coords position);
+   PieceLogic GetPieceAtSquare(Coords pieceCoords);
+}
+
+public class Board : IBoard
+{
    public ChessGameData GameData;
-   public bool MoveHasBeenMade;
-   public bool PromotionPieceChosen = true;
+   public GraphicalBoard BoardUI { get; private set; }
+   public PieceLogic[,] LogicalBoard { get; private set; }
+   public PieceLogic SelectedPiece { get; private set; }
+   public bool MoveHasBeenMade { get; private set; }
+   public bool PromotionPieceChosen { get; private set; } = true;
 
 
    public Board(GraphicalBoard graphicalBoard, SoundManager soundManager)
@@ -25,11 +41,6 @@ public class Board
 
       SubscribeToSquareClickedEvents();
       SubscribeToPieceClickedEvents();
-   }
-
-   public void SetMoveType(MoveType type)
-   {
-      GameData.LastMoveType = type;
    }
 
    public Board() { LogicalBoard = new PieceLogic[8, 8]; }
@@ -71,10 +82,10 @@ public class Board
       else return false;
    }
 
-   public bool CheckForRepetition()
-   {
-      return false;
-   }
+   //public bool CheckForRepetition()
+   //{
+   //   return false;
+   //}
 
    public bool DetectStalemate()
    {
@@ -126,17 +137,17 @@ public class Board
       }
    }
 
-   private void HandleEnPassantCapture(Coords positionForAttack, PieceLogic pieceToMove)
+   private bool HandleEnPassantCapture(Coords positionForAttack, PieceLogic pieceToMove)
    {
       bool isDiagonalPawnMove = (pieceToMove.Position.File != positionForAttack.File);
 
       if (isDiagonalPawnMove)
       {
          Coords enemyPawnPosition = new(pieceToMove.Position.Rank, positionForAttack.File);
-
          BoardUI.DestroyPieceGraphic(enemyPawnPosition, HandlePieceClicked);
-         SetMoveType(MoveType.capture);
+         return true;
       }
+      return false;
    }
 
    private void HandleCastling(Coords positionTo, PieceLogic pieceToMove)
@@ -299,16 +310,27 @@ public class Board
             if (SelectedPiece is not Pawn) GameData.IncreaseHalfmoveCounter();
             else GameData.ResetHalfmoveCounter();
 
-            if (SelectedPiece is Pawn) HandleEnPassantCapture(positionTo, SelectedPiece);
+            bool madeEnPassant = false;
+            if (SelectedPiece is Pawn) madeEnPassant = HandleEnPassantCapture(positionTo, SelectedPiece);
             MovePiece(positionTo, SelectedPiece);
+
+            if (madeEnPassant) SetMoveType(MoveType.capture);
          }
          else BoardUI.ClearHighlitedSquares();
       }
    }
 
+   public void AcknowledgeNewMove()
+   {
+      MoveHasBeenMade = false;
+      GameData.MoveNo += 1;
+   }
+
    private static string defaultStartingPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
    public static PieceLogic[,] InitializeBoard(Board board) => FenReader.ReadFEN(defaultStartingPosition, board);
+
+   public void SetMoveType(MoveType type) => GameData.LastMoveType = type;
 
    public bool IsOccupied(Coords position) => LogicalBoard[position.Rank, position.File] != null;
 

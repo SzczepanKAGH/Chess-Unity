@@ -505,8 +505,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4285486421
-  m_fontColor: {r: 0.33333334, g: 0.33333334, b: 0.43529412, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -523,10 +523,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 72
+  m_fontSize: 36
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 17
@@ -675,6 +675,7 @@ MonoBehaviour:
   graphicalBoard: {fileID: 1340449194}
   soundManager: {fileID: 0}
   gameState: 0
+  textDisplayed: 0
 --- !u!4 &1070251331
 Transform:
   m_ObjectHideFlags: 0
@@ -704,6 +705,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   checkSound: {fileID: 8300000, guid: d25a632e8da61b74aa84443928834dc3, type: 3}
   captureSound: {fileID: 8300000, guid: 3271a60c4f08f224cbf30e2a2aa8faad, type: 3}
+  endGameSound: {fileID: 8300000, guid: 8e09890377ef1d944917d0c55aa75219, type: 3}
   castlingSound: {fileID: 8300000, guid: d7236b9761b9e58409c2c34b4127d96b, type: 3}
   moveWhiteSound: {fileID: 8300000, guid: 707ad12a18578c846af08d5fcad7f1bc, type: 3}
   moveBlackSound: {fileID: 8300000, guid: cb560faf5e8633b4bafdee4f058b5b0b, type: 3}

@@ -13,6 +13,8 @@ public interface IPieceRenderer
 
 public class PieceRenderer : MonoBehaviour, IPieceRenderer
 {
+   [SerializeField] private float moveDuration = 0.1f;
+
    public static Dictionary<string, Sprite> PieceSprites = new Dictionary<string, Sprite>();
 
    public event EventHandler<PieceClickedEventArgs> OnPieceClicked;
@@ -42,8 +44,26 @@ public class PieceRenderer : MonoBehaviour, IPieceRenderer
    {
       float x = newPosition.File - 3.5f;
       float y = newPosition.Rank - 3.5f;
+      Vector3 targetPos = new Vector3(x, y, transform.position.z);
 
-      transform.position = new Vector2(x, y);
+      StartCoroutine(AnimateMove(transform.position, targetPos));
+   }
+
+
+   private IEnumerator AnimateMove(Vector3 startPosition, Vector3 newPosition)
+   {
+
+      float distance = Vector3.Distance(startPosition, newPosition);
+
+      float elapsedTime = 0;
+      while (elapsedTime < moveDuration)
+      {
+         transform.position = Vector3.Lerp(startPosition, newPosition, elapsedTime / moveDuration);
+         elapsedTime += Time.deltaTime;
+
+         yield return null;
+      }
+      transform.position = newPosition;
    }
 
    private void OnMouseDown()

@@ -1,12 +1,8 @@
 using System.Collections;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
-
-public enum GameState { Playing, WhiteWon, BlackWon, Stalemate, Repetition, FiftyMoveRule, InsufficientMaterial }
 
 public class Game : MonoBehaviour
 {
@@ -43,8 +39,7 @@ public class Game : MonoBehaviour
 
    public IEnumerator HandleNewTurn()
    {
-      board.MoveHasBeenMade = false;
-      
+      board.AcknowledgeNewMove();      
       board.CheckForPromotion();
 
       yield return new WaitUntil(() => board.PromotionPieceChosen == true);
@@ -57,12 +52,6 @@ public class Game : MonoBehaviour
       VerifyGameState();
 
       board.GameData.ResetEnPassantSquare();
-   }
-
-   public void RestartGame()
-   {
-      // Za³aduj ponownie bie¿¹c¹ scenê
-      SceneManager.LoadScene(SceneManager.GetActiveScene().name);
    }
 
    private void DisplayEndText()
@@ -104,13 +93,9 @@ public class Game : MonoBehaviour
 
    private void VerifyGameState()
    {
-      board.GameData.MoveNo += 1;
 
       if (board.CheckForHalfmove())
          gameState = GameState.FiftyMoveRule;
-
-      else if (board.CheckForRepetition())
-         gameState = GameState.Repetition;
 
       else if (board.DetectCheckmate())
          gameState = board.GameData.ActivePlayer == PieceColor.White ? GameState.BlackWon : GameState.WhiteWon;
@@ -150,4 +135,7 @@ public class Game : MonoBehaviour
             break;
       }
    }
+
+   public void RestartGame() => SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+
 }

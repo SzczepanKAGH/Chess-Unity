@@ -6,6 +6,7 @@ using UnityEngine;
 
 public enum MoveType { whiteMove, blackMove, castling, check, capture, promotion }
 
+public enum GameState { Playing, WhiteWon, BlackWon, Stalemate, Repetition, FiftyMoveRule, InsufficientMaterial }
 
 public class Utilities
 {
