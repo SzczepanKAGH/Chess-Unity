@@ -5,6 +5,7 @@ public class SoundManager : MonoBehaviour
 {
    public AudioClip checkSound;
    public AudioClip captureSound;
+   public AudioClip endGameSound;
    public AudioClip castlingSound;
    public AudioClip moveWhiteSound;
    public AudioClip moveBlackSound;
@@ -14,6 +15,8 @@ public class SoundManager : MonoBehaviour
    {
       audioSource = GetComponent<AudioSource>();
    }
+
+   public void PlayGameEndSound() => audioSource.PlayOneShot(endGameSound);
 
    public void PlayWhiteMoveSound() => audioSource.PlayOneShot(moveWhiteSound);
 

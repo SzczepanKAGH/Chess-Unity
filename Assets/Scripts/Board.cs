@@ -65,14 +65,31 @@ public class Board
       return pieces;
    }
 
-   public void CheckForHalfmove()
+   public bool CheckForHalfmove()
    {
-      //TODO
+      if (GameData.HalfmoveRule >= 100) return true;
+      else return false;
    }
 
-   public void CheckForRepetition()
+   public bool CheckForRepetition()
    {
-      //TODO
+      return false;
+   }
+
+   public bool DetectStalemate()
+   {
+      if (GetPiecesOfColor(GameData.ActivePlayer).All(piece => !piece.PossibleMoves.Any()) &&
+         !IsInCheck(GameData.ActivePlayer)) return true;
+
+      else return false;
+   }
+
+   public bool DetectCheckmate()
+   {
+      if (GetPiecesOfColor(GameData.ActivePlayer).All(piece => !piece.PossibleMoves.Any()) &&
+         IsInCheck(GameData.ActivePlayer)) return true;
+
+      else return false;
    }
 
    private void CaptureEnemyPiece(Coords enemyPiecePosition, PieceLogic alliedPiece)
@@ -112,12 +129,10 @@ public class Board
    private void HandleEnPassantCapture(Coords positionForAttack, PieceLogic pieceToMove)
    {
       bool isDiagonalPawnMove = (pieceToMove.Position.File != positionForAttack.File);
-      int direction = (SelectedPiece.IsColor(PieceColor.White)) ? 1 : -1;
 
       if (isDiagonalPawnMove)
       {
          Coords enemyPawnPosition = new(pieceToMove.Position.Rank, positionForAttack.File);
-         Debug.Log($"elo {enemyPawnPosition}");
 
          BoardUI.DestroyPieceGraphic(enemyPawnPosition, HandlePieceClicked);
          SetMoveType(MoveType.capture);
@@ -208,7 +223,6 @@ public class Board
       LogicalBoard[pieceToMove.Position.Rank, pieceToMove.Position.File] = null;
       LogicalBoard[positionTo.Rank, positionTo.File] = pieceToMove;
 
-      //Debug.Log($"Piece moved from {pieceToMove.Position} to {positionTo}");
       pieceToMove.Move(positionTo, isPieceCopy);
    }
 
@@ -270,6 +284,7 @@ public class Board
       else if (SelectedPiece != null && SelectedPiece.PossibleAttacks.Contains(clickedPiece.Position))
       {
          CaptureEnemyPiece(clickedPiece.Position, SelectedPiece);
+         GameData.ResetHalfmoveCounter();
       }
    }
 
@@ -281,6 +296,9 @@ public class Board
       {
          if (SelectedPiece.PossibleMoves.Contains(positionTo))
          {
+            if (SelectedPiece is not Pawn) GameData.IncreaseHalfmoveCounter();
+            else GameData.ResetHalfmoveCounter();
+
             if (SelectedPiece is Pawn) HandleEnPassantCapture(positionTo, SelectedPiece);
             MovePiece(positionTo, SelectedPiece);
          }
@@ -289,8 +307,6 @@ public class Board
    }
 
    private static string defaultStartingPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-   private static string enPassantTest = "8/6bb/8/8/R1pP2k1/4P3/P7/K7 b - d3 0 0";
 
    public static PieceLogic[,] InitializeBoard(Board board) => FenReader.ReadFEN(defaultStartingPosition, board);
 

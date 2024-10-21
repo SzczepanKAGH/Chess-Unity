@@ -97,6 +97,10 @@ public struct ChessGameData
       return newGameData;
    }
 
+   public void IncreaseHalfmoveCounter() => HalfmoveRule += 1;
+
+   public void ResetHalfmoveCounter() => HalfmoveRule = 0;
+
    public void SetEnPassantSquare(Coords position) => EnPassantTargetSquare = position;
 
    public void ResetEnPassantSquare() => EnPassantTargetSquare = noEnPassantSquare;

@@ -21,6 +21,8 @@ public class PieceRenderer : MonoBehaviour, IPieceRenderer
 
    public static void LoadSprites()
    {
+      PieceSprites.Clear();
+
       for (int piece = (int)PieceType.Pawn; piece <= (int)PieceType.King; piece++)
       {
          foreach (var color in Enum.GetValues(typeof(PieceColor)))

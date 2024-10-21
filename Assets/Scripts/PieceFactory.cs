@@ -32,7 +32,7 @@ public class PieceFactory : MonoBehaviour
       
       newPiece.transform.position = new Vector3(newPiece.transform.position.x,
                                                 newPiece.transform.position.y,
-                                                newPiece.transform.position.z - 1);
+                                                newPiece.transform.position.z - 3);
 
 
       graphicalBoard.graphicalPiecesList.Add(newPiece);
