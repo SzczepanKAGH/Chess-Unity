@@ -56,35 +56,13 @@ public class Game : MonoBehaviour
 
    private void DisplayEndText()
    {
-      string finalText = "Game is over, ";
-
-      switch (gameState)
+      string finalText = gameState switch
       {
-         case GameState.WhiteWon:
-            finalText += "white won by checkmate";
-            break;
-
-         case GameState.BlackWon:
-            finalText += "black won by checkmate";
-            break;
-
-         case GameState.Stalemate:
-            finalText += "it's a draw by stalemate";
-            break;
-
-         case GameState.FiftyMoveRule:
-            finalText += "it's a draw by no progress in position for 50 moves";
-            break;
-
-         case GameState.Repetition:
-            finalText += "it's a draw by threefold repetition";
-            break;
-
-         case GameState.InsufficientMaterial:
-            finalText += "it's a draw because of insufficient material for checkmate";
-            break;
-      }
-      finalText += ", press space to restart.";
+         GameState.Repetition => "Draw by repetition",
+         GameState.Stalemate => "Draw because of stalemate",
+         GameState.InsufficientMaterial => "Draw because of insufficient material",
+         _ => "Checkmate"
+      };
 
       soundManager.PlayGameEndSound();
       gameStateIndicator.SetText(finalText);

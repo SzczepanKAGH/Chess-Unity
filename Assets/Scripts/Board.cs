@@ -144,6 +144,7 @@ public class Board : IBoard
       if (isDiagonalPawnMove)
       {
          Coords enemyPawnPosition = new(pieceToMove.Position.Rank, positionForAttack.File);
+         LogicalBoard[enemyPawnPosition.Rank, enemyPawnPosition.File] = null;
          BoardUI.DestroyPieceGraphic(enemyPawnPosition, HandlePieceClicked);
          return true;
       }
@@ -287,7 +288,7 @@ public class Board : IBoard
       BoardUI.ClearHighlitedSquares();
       PieceLogic clickedPiece = e.Piece;
 
-      if (clickedPiece.Color == GameData.ActivePlayer)
+      if (clickedPiece.Color == GameData.ActivePlayer && PromotionPieceChosen)
       {
          SelectedPiece = e.Piece;
          BoardUI.HighlightSquares(SelectedPiece.PossibleMoves, SelectedPiece.PossibleAttacks);
