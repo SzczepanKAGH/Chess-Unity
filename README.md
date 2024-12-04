@@ -12,6 +12,8 @@ Scenes/: Unity scenes for menu and gameplay. \
 Build/: Folder with game ready to launch!
 
 # Installation ⚙️
+If you want to just play all you need to do is download Build folder and use 'Chess Unity.exe'. \
+The game can be restarted by pressing the Space key once the game finishes.
 
 # Roadmap 🗺️
  I intend to create simple AI for human vs computer gamemode.
